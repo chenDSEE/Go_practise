@@ -3,9 +3,11 @@ package server
 import (
 	"bookstore/server/middleware"
 	"bookstore/store"
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -36,9 +38,23 @@ func NewBookServer(name string, addr string, db store.Store) *BookServer {
 	return srv
 }
 
-func (srv *BookServer) ListenAndServe() error {
-	log.Printf("====== server start =====\n")
-	return srv.instance.ListenAndServe();
+func (srv *BookServer) ListenAndServe() (<-chan error, error) {
+	errCH := make(chan error)
+	go func() {
+		log.Printf("====== server start =====\n")
+		errCH <- srv.instance.ListenAndServe()
+	}()
+
+	select {
+	case err := <- errCH:
+		return nil, err
+	case <-time.After(time.Second):
+		return errCH, nil // wait for server starting
+	}
+}
+
+func (srv *BookServer) Shutdown(ctx context.Context) error {
+	return srv.instance.Shutdown(ctx)
 }
 
 func (srv *BookServer) createBookHanler(rsp http.ResponseWriter, req *http.Request) {

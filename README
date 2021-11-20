@@ -1,0 +1,7 @@
+# usage:
+curl -X POST -H "Content-Type:application/json" -d '{"ISBN" : "ISBN-1", "Name" : "book-1", "Authors":["author-1", "author-2"], "Num": 10}' localhost:8080/book
+curl -X GET -H "Content-Type:application/json" localhost:8080/book/ISBN-1
+
+# build:
+step 1: `make debug` or `make all`
+step 2: ./bookstore
